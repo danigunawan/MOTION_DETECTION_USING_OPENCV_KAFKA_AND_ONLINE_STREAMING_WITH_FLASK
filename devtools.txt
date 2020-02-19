@@ -1,1 +1,76 @@
+
+MOTION DETECTION USING OPENCV, KAFKA & ONLINE STREAMING WITH FLASK
+
+REFF : 
+PLAYLIST :
 https://www.youtube.com/watch?v=mVKN_Bld71w&list=PLS1lqxOwNjOahzD7u7TqOzCbzMCrKSJmv
+
+
+LIST TOPIC :
+1. Motion Detection Application
+2. Work With Kafka
+3. Work With Flask
+
+GOALS :
+- Develop a motion detection application that can
+++ Record a video only when 
+++ Be able to watch the video online
+++ Be able to adjust your parameters according to what you want to detect : small events or only big events
+
+- A Proof of Concept (POC) application using Apache Kafka Using Image Processing 
+- Use Flask to Able to watch our video online realtime 
+
+1. Motion Detection using OpenCV, Apache Kafka and Online Streaming with Flask #1
+
+Additional :
+
+- OPENCV
+https://docs.opencv.org/3.3.0/db/d5c/tutorial_py_bg_subtraction.html
+
+- KAFKA
+https://kafka.apache.org/
+
+download :
+Source download: 
+kafka-2.2.0-src.tgz (asc, sha512)
+Binary downloads:
+Scala 2.12  - kafka_2.12-2.2.0.tgz (asc, sha512)
+
+# Quic Start Installation
+https://kafka.apache.org/quickstart
+
+# Installation Kafka With Mac OSX
+https://www.tutorialkart.com/apache-kafka/install-apache-kafka-on-mac/
+
+# Install With Homebrew MAC OSX 
+https://medium.com/@Ankitthakur/apache-kafka-installation-on-mac-using-homebrew-a367cdefd273
+
+RUNNING KAFKA :
+# 1. Zookeper Run
+- cd /Volumes/HDD500-DANI/KAFKA/kafka_2.12-2.2.0
+- sh bin/zookeeper-server-start.sh config/zookeeper.properties
+
+
+# START KAFKA
+
+- nano config/server.properties 
+uncomment :
+listeners=PLAINTEXT://:9092 
+
+note : fix issue WARN [Controller id=0, targetBrokerId=0] Connection to node 0 could not be established. Broker may not be available. (org.apache.kafka.clients.NetworkClient)
+
+Running Kafka Server
+- bin/kafka-server-start.sh config/server.properties
+
+
+# 2. Create Kafka Topic
+cd /Volumes/HDD500-DANI/KAFKA/kafka_2.12-2.2.0/bin
+./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic sampleTopic
+
+
+# 3. Initialize Producer Console :
+
+./kafka-console-producer.sh --broker-list localhost:9092 --topic sampleTopic
+
+# 4. Initialize Consumer console:
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic sampleTopic --from-beginning
