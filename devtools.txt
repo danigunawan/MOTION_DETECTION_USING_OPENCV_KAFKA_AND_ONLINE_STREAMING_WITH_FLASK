@@ -20,6 +20,8 @@ GOALS :
 - A Proof of Concept (POC) application using Apache Kafka Using Image Processing 
 - Use Flask to Able to watch our video online realtime 
 
+#### CARA 1 INSTALL APACHE KAFKA ZOOKEPER ####
+
 1. Motion Detection using OpenCV, Apache Kafka and Online Streaming with Flask #1
 
 Additional :
@@ -29,6 +31,9 @@ https://docs.opencv.org/3.3.0/db/d5c/tutorial_py_bg_subtraction.html
 
 - KAFKA
 https://kafka.apache.org/
+
+- KAFKA LEARN
+https://www.tutorialkart.com/apache-kafka/create-a-topic-in-apache-kafka/
 
 download :
 Source download: 
@@ -74,3 +79,163 @@ cd /Volumes/HDD500-DANI/KAFKA/kafka_2.12-2.2.0/bin
 
 # 4. Initialize Consumer console:
 ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic sampleTopic --from-beginning
+
+#### END CARA INSTALL APACHE KAFKA ZOOKEPER ####
+
+
+#### CARA 2 INSTALL APACHE KAFKA ZOOKEPER ####
+
+1. Motion Detection using OpenCV, Apache Kafka and Online Streaming with Flask #2
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential cmake pkg-config
+sudo apt-get install libjpeg8-dev libtiff5-dev libjasper-dev libpng12-dev
+sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev 
+sudo apt-get install libxvidcore-dev libx264-dev
+sudo apt-get install libgtk-3-dev
+sudo apt-get install libatlas-base-dev gfortran
+sudo apt-get install python2.7-dev python3.5-dev
+
+GET OPENCV VERSION THAT YOU ARE USING 
+
+cd ~
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python get-pip.py
+
+sudo pip install virtualenv virtualenvwrapper
+sudo rm -rf ~/get-pip.py ~/.cache/pip
+
+#virtualenv and virtualenvwrapper
+export WORKON_HOME=$HOME/.virtualsenv
+source /usr/local/bin/virtualenvwrapper.sh
+
+echo -e "\n# virtualenv and virtualenvwrapper" >> ~/.bashrc
+echo "export WORKON_HOME=$HOME/.virtualenvs" >> ~/.bashrc
+echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+source ~/.bashrc
+
+mkvirtualenv cv2 -p python2
+mkvirtualenv cv -p python3
+
+sudo apt-get install python3-pip
+sudo pip install numpy scipy jupyter
+
+
+ls -la
+ls .virtualenvs/
+
+workon cv
+
+cd ~/opencv-3.1.0/
+mkdir build
+cd build
+cmake 
+-D CMAKE_BUILD_TYPE=RELEASE \
+-D CMAKE_INSTALL_PREFIX=/usr/local \
+-D INSTALL_PYTHON_EXAMPLES=ON \
+-D INSTALL_C_EXAMPLES=OFF \
+-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib-3.1.0/modules \
+-D PYTHON_EXECUTABLE=~/virtualenvs/cv/bin/python \
+-D BUILD_EXAMPLES=ON ..
+
+make -j4
+
+if any errors :
+make clean
+make
+
+sudo make install
+sudo ldconfig
+
+For Python 2.7
+===============
+ls -l /usr/local/lib/python2.7/site-packages/  # look for the cv2.so file
+cd ~/.virtualenvs/cv/lib/python2.7/site-packages
+ln -s /usr/local/lib/python2.7/site-packages/cv2.so cv2.so
+
+For Python 3.5
+===============
+ls -l /usr/local/lib/python3.5/site-packages/
+
+cd /usr/local/lib/python3.5/site-packages/
+sudo mv cv2.cpython-35m-x86_64-linux-gnu.so cv2.so
+
+cd ~/.virtualenvs/cv/lib/python3.5/site-packages/
+ln -s /usr/local/lib/python3.5/site-packages/cv2.so cv2.so
+
+
+cd ~
+workon cv
+python
+import cv2
+cv2.__version__
+exit()
+
+jupyter notebook
+import pyspark
+
+
+2. Motion Detection Apache Kafka OpenCV #4
+
+Reff : https://towardsdatascience.com/getting-started-with-apache-kafka-in-python-604b3250aa05
+
+JAVA Installation
+=================
+sudo apt-get update
+sudo apt-get install default-jdk
+
+First Add Oracle PPA, then update your package repository :
+
+sudo add-apt-repository ppa:webupd8team/java 
+sudo apt-get update
+sudo apt-get install oracle-java8-installer
+sudo update-alternatives --config java
+
+
+sudo update-alternatives --config java
+sudo nano /etc/environment
+JAVA_HOME="/usr/lib/jvm/java-8-oracle"
+source /etc/environment
+echo $JAVA_HOME
+
+cd ~
+nano HelloWorld.java
+
+public class HelloWorld {
+    public static void main(string[] args){
+        //Prints "Hello World" to the terminal windows.
+        System.out.println("Hello World")
+    }
+}
+
+Javac HelloWorld.java
+java HelloWorld 
+
+#### CARA 2 INSTALL APACHE KAFKA ####
+3. Motion Detection Apache Kafka OpenCV #5
+====================================
+ApacheKafka Installation
+
+head to kafka.apache.org
+
+wget http://apache.claz.org/kafka/2.2.0/kafka_2.12-2.2.0.tgz
+
+tar -xzf kafka_2.12-2.2.0.tgz
+cd kafka_2.12-2.2.0
+bin/zookeeper-server-start.sh config/zookeper.properties
+bin/kafka-server-start.sh config/server.properties
+
+# Create A Topic
+bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1--topic test
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+
+# Test Server By Sending Messages
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+
+# To Use It With Python
+Install kafka python via pip :
+
+pip install kafka-python
+
+#### END CARA 2 INSTALL APACHE KAFKA ####
