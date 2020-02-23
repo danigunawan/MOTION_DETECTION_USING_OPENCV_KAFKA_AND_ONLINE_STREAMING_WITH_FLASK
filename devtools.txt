@@ -69,7 +69,6 @@ Running Kafka Server
 
 
 # 2. Create Kafka Topic
-cd /Volumes/HDD500-DANI/KAFKA/kafka_2.12-2.2.0/bin
 ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic sampleTopic
 
 
@@ -125,6 +124,12 @@ ls -la
 ls .virtualenvs/
 
 workon cv
+
+jika conda : 
+
+conda create -n py36 python=3.6 anaconda
+
+conda activate py36
 
 cd ~/opencv-3.1.0/
 mkdir build
@@ -212,18 +217,48 @@ Javac HelloWorld.java
 java HelloWorld 
 
 #### CARA 2 INSTALL APACHE KAFKA ####
+
 3. Motion Detection Apache Kafka OpenCV #5
 ====================================
+
 ApacheKafka Installation
 
 head to kafka.apache.org
+Intro : https://kafka.apache.org/intro
+Quickstart : https://kafka.apache.org/quickstart
+What Is Apache Kafka : https://techbeacon.com/app-dev-testing/what-apache-kafka-why-it-so-popular-should-you-use-it
+Tutorial : https://www.tutorialspoint.com/apache_kafka/index.htm
 
 wget http://apache.claz.org/kafka/2.2.0/kafka_2.12-2.2.0.tgz
 
+or 
+
+wget https://www.apache.org/dyn/closer.cgi?path=/kafka/2.2.0/kafka_2.12-2.2.0.tgz
+
+or 
+
+wget https://downloads.apache.org/kafka/2.2.0/kafka_2.12-2.2.0.tgz
+
 tar -xzf kafka_2.12-2.2.0.tgz
 cd kafka_2.12-2.2.0
-bin/zookeeper-server-start.sh config/zookeper.properties
+
+# Run Zookeper Service
+cd /Volumes/HDD500-DANI/KAFKA/kafka_2.12-2.2.0
+sh bin/zookeeper-server-start.sh config/zookeeper.properties # or bin/zookeeper-server-start.sh config/zookeper.properties
+
+# Run Kafka Service
+cd /Volumes/HDD500-DANI/KAFKA/kafka_2.12-2.2.0
 bin/kafka-server-start.sh config/server.properties
+
+- nano config/server.properties 
+uncomment :
+listeners=PLAINTEXT://:9092 
+
+note : fix issue WARN [Controller id=0, targetBrokerId=0] Connection to node 0 could not be established. Broker may not be available. (org.apache.kafka.clients.NetworkClient)
+
+workon cv
+java 
+javac
 
 # Create A Topic
 bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1--topic test
@@ -239,3 +274,170 @@ Install kafka python via pip :
 pip install kafka-python
 
 #### END CARA 2 INSTALL APACHE KAFKA ####
+
+4. Motion Detection Apache Kafka OpenCV #6
+
+- OPENCV
+https://docs.opencv.org/3.3.0/db/d5c/tutorial_py_bg_subtraction.html
+
+- FLASK
+flask.pooco.org
+
+pip install flask
+
+nano hello.py
+
+isikan : 
+
+from flask import Flask, escape, request
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    name = request.args.get("name", "World")
+    return f'Hello, {escape(name)}!'
+
+
+5. Motion Detection Apache Kafka OpenCV #7
+
+- OPENCV
+https://docs.opencv.org/3.3.0/db/d5c/tutorial_py_bg_subtraction.html
+
+- FLASK
+flask.pooco.org
+
+- KAFKA
+kafka.apache.org
+
+nano producer.py :
+
+import sys
+import time
+import cv2
+from kafka import KafkaProducer
+import numpy as np
+
+# Codec Definition And Creation Of VideoWriter Object
+fourcc =  cv2.VideoWriter(*'DIVX')
+out = cv2.VideoWriter('motiondetect.avi', fourcc, 60.0, (1920,1080), isColor = false)
+
+
+# MOG2 Segmentation
+foreground = cv2.createBackgroundSubtractorMOG2(detectShadows = false)
+
+topic = "kafka_video"
+
+def publish_video(video_file):
+
+    # run producer.py
+    producer = KafkaProducer(bootstrap_servers = 'localhost:9092')
+
+    # define VideoCapture
+    cap = cv2.VideoCapture(video_file)
+
+    print('publishing video...')
+
+    while(cap.isOpened()):
+        success, camframe = cap.read()
+
+        # make sure it works
+        if not success:
+            print("bad read")
+            break
+
+        # Convert Image to JPG
+        ret, buffer = cv2.imencode('.jpg', camframe)
+
+        # Break them up into bytes for kafka
+        producer.send(topic, buffer.tobytes())
+
+        time.sleep(0.2)
+
+    cap.release()
+    print('end of stream')
+
+def publish_camera():
+
+    # Run producer.py
+    producer = KafkaProducer(bootstrap_servers='localhost:9092')
+
+    camera = cv2.VideoCapture(0)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    camera.set(cv2.CAP_PROP_FPS, 6)
+
+    try:
+        while(true):
+            success, camframe = camera.read()
+            grayframe = cv2.cvtcolor(camframe, cv2.COLOR_BGR2GRAY)
+            blurframe = cv2.GaussianBlur(camframe, (5,5), 0)
+
+            #Capture Motion
+            motionframe = foreground.apply(grayframe)
+            detect = (np.sum(motionframe))//255
+            if detect > 30:
+                print("Object in motion size = ", detect)
+
+                # Save Stream to .avi .file
+                out.write(grayframe)
+
+            ret, buffer = cv2.imencode('.jpg', grayframe)
+            producer.send(topic, buffer.tobytes())
+
+            # Give Some time for processing
+            time.sleep(0.2)
+
+    except:
+        print("\nWe are done.")
+        sys.exit(1)
+
+    camera.release()
+    out.release()
+
+if __name__ == '__main__':
+    if(len(sys.argv) > 1 ):
+        video_path = sys.argv[1]
+        publish_video(video_path)
+    else:
+        print("We Are Live !)
+publish_camera()
+
+
+
+nano consumer.py :
+
+import datetime
+from flask import Flask, Response
+from kafka import KafkaConsumer
+
+
+# Start consumer.py
+topic = "kafka_video"
+
+consumer = KafkaConsumer(
+    topic,
+    bootstrap_servers = ['localhost:9092']
+)
+
+# Get The Flask App Ready for view
+
+app = Flask(__name__)
+@app.route('/video', method=['GET'])
+
+def video():
+    return Response(
+        get_video_stream(),
+        mimetype = 'multipart/x-mixed-replace; boundary=frame')
+
+def get_video_stream():
+    for msg in consumer:
+        yield('b--frame\r\n
+               b'Content-Type: image/jpg)
+
+
+# Run Producer
+python producer.py
+
+# Run Consume
+python consumer.py
