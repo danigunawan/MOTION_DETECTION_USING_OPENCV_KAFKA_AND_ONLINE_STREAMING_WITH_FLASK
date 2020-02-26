@@ -88,7 +88,7 @@ Running Kafka Server
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential cmake pkg-config
-sudo apt-get install libjpeg8-dev libtiff5-dev libjasper-dev libpng12-dev
+sudo apt-get install libjpeg8-dev libtiff5-dev libjasper-dev libpng12-dev # for ubuntu 18.04 libpng-dev 
 sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev 
 sudo apt-get install libxvidcore-dev libx264-dev
 sudo apt-get install libgtk-3-dev
@@ -105,6 +105,7 @@ sudo pip install virtualenv virtualenvwrapper
 sudo rm -rf ~/get-pip.py ~/.cache/pip
 
 #virtualenv and virtualenvwrapper
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6
 export WORKON_HOME=$HOME/.virtualsenv
 source /usr/local/bin/virtualenvwrapper.sh
 
@@ -114,7 +115,8 @@ echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 source ~/.bashrc
 
 mkvirtualenv cv2 -p python2
-mkvirtualenv cv -p python3
+mkvirtualenv cv3 -p python3
+mkvirtualenv cv -p python3.6
 
 sudo apt-get install python3-pip
 sudo pip install numpy scipy jupyter
@@ -130,6 +132,9 @@ jika conda :
 conda create -n py36 python=3.6 anaconda
 
 conda activate py36
+pip install opencv-python
+
+or 
 
 cd ~/opencv-3.1.0/
 mkdir build
@@ -193,11 +198,9 @@ First Add Oracle PPA, then update your package repository :
 
 sudo add-apt-repository ppa:webupd8team/java 
 sudo apt-get update
-sudo apt-get install oracle-java8-installer
+sudo apt-get install oracle-java8-installer or sudo apt install openjdk-8-jdk
 sudo update-alternatives --config java
 
-
-sudo update-alternatives --config java
 sudo nano /etc/environment
 JAVA_HOME="/usr/lib/jvm/java-8-oracle"
 source /etc/environment
