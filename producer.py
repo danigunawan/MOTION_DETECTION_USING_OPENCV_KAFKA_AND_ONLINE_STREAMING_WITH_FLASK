@@ -7,12 +7,11 @@ import numpy as np
 # Codec Definition And Creation Of VideoWriter Object
 
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('motiondetect.avi', fourcc, 60.0, (1920, 1080),
-                      isColor=False)
+out = cv2.VideoWriter('motiondetect.avi', fourcc, 60.0, (1920,1080),isColor=False)
 
 # MOG2 Segmentation
 foreground = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
-topic = 'kafka_video'
+topic = "kafka_video"
 
 
 def publish_video(video_file):
@@ -22,10 +21,11 @@ def publish_video(video_file):
 
     # define VideoCapture
     cap = cv2.VideoCapture(video_file)
+   
     print('publishing video...')
-    
+
     while(cap.isOpened()):
-        (success, camframe) = cap.read()
+        success, camframe = cap.read()
 
         # make sure it works
         if not success:
@@ -33,14 +33,13 @@ def publish_video(video_file):
             break
 
         # Convert Image to JPG
-        (ret, buffer) = cv2.imencode('.jpg', camframe)
+        ret, buffer = cv2.imencode('.jpg', camframe)
 
         # Break them up into bytes for kafka
 
         producer.send(topic, buffer.tobytes())
 
         time.sleep(0.2)
-
     cap.release()
     print('end of stream')
 
@@ -51,35 +50,29 @@ def publish_camera():
     producer = KafkaProducer(bootstrap_servers='127.0.0.1:9092')
 
     camera = cv2.VideoCapture(0)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     camera.set(cv2.CAP_PROP_FPS, 6)
 
     try:
         while(True):
-            (success, camframe) = camera.read()
-            grayframe = cv2.cvtcolor(camframe, cv2.COLOR_BGR2GRAY)
+            success, camframe = camera.read()
+            grayframe = cv2.cvtColor(camframe, cv2.COLOR_BGR2GRAY)
             blurframe = cv2.GaussianBlur(camframe, (5, 5), 0)
 
             # Capture Motion
-
             motionframe = foreground.apply(grayframe)
-            detect = np.sum(motionframe) // 255
-            if detect > 30:
-                print ('Object in motion size = ', detect)
-
+            detect = (np.sum(motionframe))//255
+            if detect>30:
+                print ("Object in motion size = ", detect)
                 # Save Stream to .avi .file
-
                 out.write(grayframe)
-
-            (ret, buffer) = cv2.imencode('.jpg', grayframe)
+            ret, buffer = cv2.imencode('.jpg', grayframe)
             producer.send(topic, buffer.tobytes())
 
             # Give Some time for processing
-
             time.sleep(0.2)
     except:
-
         print('\nWe are done.')
         sys.exit(1)
 
