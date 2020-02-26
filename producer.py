@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 import sys
 import time
 import cv2
@@ -9,39 +7,33 @@ import numpy as np
 # Codec Definition And Creation Of VideoWriter Object
 
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('motiondetect.avi', fourcc, 60.0, (640, 480),
+out = cv2.VideoWriter('motiondetect.avi', fourcc, 60.0, (1920, 1080),
                       isColor=False)
 
 # MOG2 Segmentation
-
 foreground = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
-
 topic = 'kafka_video'
 
 
 def publish_video(video_file):
-
+    
     # run producer.py
-
-    producer = KafkaProducer(bootstrap_servers='127.0.0.1:9092')
+    producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
     # define VideoCapture
-
     cap = cv2.VideoCapture(video_file)
 
     print('publishing video...')
 
-    while cap.isOpened():
+    while(cap.isOpened()):
         (success, camframe) = cap.read()
 
         # make sure it works
-
         if not success:
             print('bad read')
             break
 
         # Convert Image to JPG
-
         (ret, buffer) = cv2.imencode('.jpg', camframe)
 
         # Break them up into bytes for kafka
@@ -57,7 +49,6 @@ def publish_video(video_file):
 def publish_camera():
 
     # Run producer.py
-
     producer = KafkaProducer(bootstrap_servers='127.0.0.1:9092')
 
     camera = cv2.VideoCapture(0)
