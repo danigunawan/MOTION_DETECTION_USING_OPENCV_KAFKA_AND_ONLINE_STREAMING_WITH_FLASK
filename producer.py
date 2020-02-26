@@ -22,9 +22,8 @@ def publish_video(video_file):
 
     # define VideoCapture
     cap = cv2.VideoCapture(video_file)
-
     print('publishing video...')
-
+    
     while(cap.isOpened()):
         (success, camframe) = cap.read()
 
